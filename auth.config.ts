@@ -4,6 +4,7 @@ import type { NextAuthConfig } from "next-auth";
 // the Nodemailer provider pulls in Node core modules (`stream`, etc.) that
 // can't run in the Edge runtime middleware executes in.
 export const authConfig = {
+  trustHost: true,
   providers: [],
   session: {
     strategy: "jwt",
