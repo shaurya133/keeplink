@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserFromBearer, mobileCorsHeaders } from "@/lib/mobile-auth";
 import { tagNameSchema } from "@/lib/validation";
-import { z } from "zod";
 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: mobileCorsHeaders() });
