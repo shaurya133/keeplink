@@ -1,11 +1,14 @@
 import NextAuth from "next-auth";
 import Nodemailer from "next-auth/providers/nodemailer";
+import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { Adapter } from "next-auth/adapters";
 import { prisma } from "@/lib/prisma";
 import { sendMagicLinkEmail } from "@/lib/mailer";
 import { authConfig } from "@/auth.config";
 import { MAGIC_LINK_MAX_AGE_SECONDS } from "@/lib/magic-link";
+import { verifyOtp } from "@/lib/otp";
+import { z } from "zod";
 
 const prismaAdapter = PrismaAdapter(prisma);
 
@@ -40,12 +43,36 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Nodemailer({
       from: process.env.EMAIL_FROM ?? "onboarding@resend.dev",
       maxAge: MAGIC_LINK_MAX_AGE_SECONDS,
-      // Never actually used for sending: sendVerificationRequest below sends
-      // via the Resend API instead, but the provider requires a `server`
-      // value to be present at config time regardless.
       server: { host: "localhost", port: 25 },
       sendVerificationRequest: async ({ identifier, url }) => {
         await sendMagicLinkEmail(identifier, url);
+      },
+    }),
+    Credentials({
+      credentials: { email: {}, code: {} },
+      async authorize(raw) {
+        const parsed = z
+          .object({ email: z.string().email(), code: z.string().length(6) })
+          .safeParse(raw);
+        if (!parsed.success) return null;
+
+        const { email, code } = parsed.data;
+        const valid = await verifyOtp(email, code);
+        if (!valid) return null;
+
+        let user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+          user = await prisma.user.create({
+            data: { email, emailVerified: new Date() },
+          });
+        } else if (!user.emailVerified) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerified: new Date() },
+          });
+        }
+
+        return { id: user.id, email: user.email };
       },
     }),
   ],

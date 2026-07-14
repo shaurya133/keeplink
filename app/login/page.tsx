@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { auth, signIn } from "@/auth";
+import { auth } from "@/auth";
+import { createOtp, hasValidOtp } from "@/lib/otp";
+import { sendOtpEmail } from "@/lib/mailer";
 import { PENDING_EMAIL_COOKIE } from "@/lib/magic-link";
 
 export default async function LoginPage() {
@@ -18,14 +20,22 @@ export default async function LoginPage() {
           action={async (formData) => {
             "use server";
             const email = String(formData.get("email") ?? "").trim().toLowerCase();
+            if (!email.includes("@")) return;
+
+            if (!await hasValidOtp(email)) {
+              const code = await createOtp(email);
+              await sendOtpEmail(email, code);
+            }
+
             (await cookies()).set(PENDING_EMAIL_COOKIE, email, {
               httpOnly: true,
               secure: process.env.NODE_ENV === "production",
               sameSite: "lax",
-              maxAge: 60 * 10,
+              maxAge: 60 * 15,
               path: "/",
             });
-            await signIn("nodemailer", { email, redirectTo: "/links" });
+
+            redirect("/verify-request");
           }}
           className="space-y-[var(--space-3)]"
         >
@@ -37,7 +47,7 @@ export default async function LoginPage() {
             className="input"
           />
           <button type="submit" className="btn btn-primary w-full">
-            Send magic link
+            Send code
           </button>
         </form>
       </div>

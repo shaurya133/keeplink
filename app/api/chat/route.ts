@@ -3,15 +3,29 @@ import { streamText } from "ai";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
+import { getUserFromBearer, mobileCorsHeaders } from "@/lib/mobile-auth";
 
 const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: mobileCorsHeaders() });
+}
+
 export async function POST(req: NextRequest) {
-  let user: Awaited<ReturnType<typeof requireUser>>;
-  try {
-    user = await requireUser();
-  } catch {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Support both cookie sessions (web) and Bearer tokens (mobile)
+  const bearerUser = await getUserFromBearer(req);
+  let userId: string;
+
+  if (bearerUser) {
+    userId = bearerUser.id;
+  } else {
+    let user: Awaited<ReturnType<typeof requireUser>>;
+    try {
+      user = await requireUser();
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: mobileCorsHeaders() });
+    }
+    userId = user.id;
   }
 
   const { messages, linkId } = await req.json();
@@ -20,7 +34,7 @@ export async function POST(req: NextRequest) {
 
   if (linkId) {
     const link = await prisma.link.findFirst({
-      where: { id: linkId, userId: user.id },
+      where: { id: linkId, userId },
     });
 
     if (!link) {
@@ -42,7 +56,7 @@ ${articleText ? `\nArticle content:\n${articleText}` : "\n(Full article text not
 Answer the user's questions about this article. Be concise and direct. If the article content doesn't contain information needed to answer, say so. Reply in plain text only — no markdown, no bullet symbols, no bold or italic markers.`;
   } else {
     const links = await prisma.link.findMany({
-      where: { userId: user.id },
+      where: { userId },
       select: { title: true, url: true, description: true, domain: true },
       orderBy: { addedAt: "desc" },
     });

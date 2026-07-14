@@ -23,3 +23,27 @@ export async function sendMagicLinkEmail(email: string, url: string) {
 
   console.log(`Magic link email sent to ${email} (Resend id: ${data?.id})`);
 }
+
+export async function sendOtpEmail(email: string, code: string) {
+  const { data, error } = await getResendClient().emails.send({
+    from: process.env.EMAIL_FROM ?? "onboarding@resend.dev",
+    to: email,
+    subject: `${code} — your KeepLink code`,
+    html: `
+      <p>Your KeepLink sign-in code is:</p>
+      <p style="font-size:40px;font-weight:800;letter-spacing:8px;color:#9c5640;margin:24px 0;">${code}</p>
+      <p style="color:#6b6760;font-size:14px;">This code expires in 2 hours. If you didn't request this, you can ignore this email.</p>
+    `,
+    text: `Your KeepLink sign-in code is: ${code}\n\nExpires in 2 hours.`,
+  });
+
+  if (error) {
+    console.error(`Resend failed to send OTP to ${email}:`, error);
+    throw new Error(`Failed to send code: ${error.message}`);
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`[DEV] OTP code for ${email}: ${code}`);
+  }
+  console.log(`OTP email sent to ${email} (Resend id: ${data?.id})`);
+}
