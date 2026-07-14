@@ -13,12 +13,14 @@ import {
 } from "@/app/(app)/links/actions";
 import { TagPill } from "@/components/TagPill";
 import { timeAgo } from "@/lib/utils";
+import { useChatPanel } from "@/components/ChatToggle";
 
 export function LinkCard({ link }: { link: LinkWithTags }) {
   const [isPending, startTransition] = useTransition();
   const [isAddingTag, setIsAddingTag] = useState(false);
   const tagInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const { openChat } = useChatPanel();
 
   function run(action: () => Promise<void>) {
     startTransition(async () => {
@@ -184,6 +186,16 @@ export function LinkCard({ link }: { link: LinkWithTags }) {
             <line x1="14" y1="11" x2="14" y2="17" />
           </svg>
           Delete
+        </button>
+        <button
+          type="button"
+          onClick={() => openChat(link.id, link.title ?? link.domain)}
+          className="btn btn-ghost gap-1.5 text-[13px]"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          Ask AI
         </button>
       </div>
     </div>

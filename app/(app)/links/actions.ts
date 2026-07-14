@@ -35,6 +35,7 @@ export async function createLink(rawUrl: string) {
         favicon: metadata.favicon,
         domain: metadata.domain,
         readingTime: metadata.readingTime,
+        content: metadata.content,
       },
     });
 

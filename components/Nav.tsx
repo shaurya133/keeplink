@@ -1,4 +1,5 @@
 import { SignOutButton } from "@/components/SignOutButton";
+import { NavChatButton } from "@/components/NavChatButton";
 
 export function Nav({ email }: { email: string }) {
   return (
@@ -22,6 +23,7 @@ export function Nav({ email }: { email: string }) {
         <span className="nav-brand">KeepLink</span>
       </div>
       <span className="hidden text-[13px] text-ink opacity-65 sm:inline">{email}</span>
+      <NavChatButton />
       <SignOutButton />
     </nav>
   );

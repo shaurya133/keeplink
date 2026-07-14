@@ -78,6 +78,7 @@ model Link {
   favicon     String?
   domain      String
   readingTime Int?
+  content     String?    @db.Text
   status      LinkStatus @default(UNREAD)
 
   addedAt    DateTime  @default(now())

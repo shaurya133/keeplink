@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { estimateReadingTime } from "@/lib/reading-time";
+import { extractContent } from "@/lib/content-extractor";
 
 export interface FetchedMetadata {
   title: string | null;
@@ -8,6 +9,7 @@ export interface FetchedMetadata {
   favicon: string | null;
   domain: string;
   readingTime: number | null;
+  content: string | null;
 }
 
 function extractDomain(url: string): string {
@@ -31,6 +33,7 @@ export async function fetchMetadata(url: string): Promise<FetchedMetadata> {
     favicon: null,
     domain,
     readingTime: null,
+    content: null,
   };
 
   try {
@@ -72,8 +75,9 @@ export async function fetchMetadata(url: string): Promise<FetchedMetadata> {
 
     const bodyText = $("body").text().replace(/\s+/g, " ").trim();
     const readingTime = bodyText ? estimateReadingTime(bodyText) : null;
+    const content = extractContent(html, finalUrl);
 
-    return { title, description, thumbnail, favicon, domain, readingTime };
+    return { title, description, thumbnail, favicon, domain, readingTime, content };
   } catch {
     return empty;
   }
