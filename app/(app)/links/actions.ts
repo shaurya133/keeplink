@@ -6,7 +6,6 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { urlSchema, tagNameSchema } from "@/lib/validation";
 import { fetchMetadata } from "@/lib/metadata";
-import { suggestTags } from "@/lib/tags";
 
 export async function createLink(rawUrl: string) {
   const user = await requireUser();
@@ -24,24 +23,8 @@ export async function createLink(rawUrl: string) {
   }
 
   const metadata = await fetchMetadata(url);
-  const tagNames = suggestTags({
-    domain: metadata.domain,
-    title: metadata.title,
-    description: metadata.description,
-  });
 
   try {
-    const tagIds = await Promise.all(
-      tagNames.map(async (name) => {
-        const tag = await prisma.tag.upsert({
-          where: { userId_name: { userId: user.id, name } },
-          create: { userId: user.id, name },
-          update: {},
-        });
-        return tag.id;
-      }),
-    );
-
     const link = await prisma.link.create({
       data: {
         userId: user.id,
@@ -52,7 +35,6 @@ export async function createLink(rawUrl: string) {
         favicon: metadata.favicon,
         domain: metadata.domain,
         readingTime: metadata.readingTime,
-        tags: { create: tagIds.map((tagId) => ({ tagId })) },
       },
     });
 
@@ -141,5 +123,11 @@ export async function removeTagFromLink(linkId: string, tagId: string) {
   if (!link || !tag) return;
 
   await prisma.linkTag.deleteMany({ where: { linkId, tagId } });
+
+  const remaining = await prisma.linkTag.count({ where: { tagId } });
+  if (remaining === 0) {
+    await prisma.tag.delete({ where: { id: tagId } });
+  }
+
   revalidatePath("/links");
 }

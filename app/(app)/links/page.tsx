@@ -67,7 +67,7 @@ export default async function LinksPage({
       orderBy: { addedAt: "desc" },
     }),
     prisma.tag.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, links: { some: {} } },
       include: { _count: { select: { links: true } } },
       orderBy: { name: "asc" },
     }),
