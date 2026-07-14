@@ -52,7 +52,7 @@ export function suggestTags(input: {
     frequency.set(token, (frequency.get(token) ?? 0) + 1);
   }
 
-  const ranked = [...frequency.entries()]
+  const ranked = Array.from(frequency.entries())
     .filter(([token]) => token !== domainTag)
     .sort((a, b) => b[1] - a[1])
     .map(([token]) => token);
