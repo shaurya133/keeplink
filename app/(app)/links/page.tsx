@@ -6,7 +6,7 @@ import { FilterTabs } from "@/components/FilterTabs";
 import { TagSidebar } from "@/components/TagSidebar";
 import type { Prisma } from "@prisma/client";
 
-const VALID_STATUSES = new Set(["unread", "read", "all"]);
+const VALID_STATUSES = new Set(["unread", "read", "archived", "all"]);
 
 export default async function LinksPage({
   searchParams,
@@ -41,8 +41,10 @@ export default async function LinksPage({
     status === "unread"
       ? { status: "UNREAD" }
       : status === "read"
-        ? { status: { in: ["READ", "ARCHIVED"] } }
-        : {};
+        ? { status: "READ" }
+        : status === "archived"
+          ? { status: "ARCHIVED" }
+          : {};
 
   const where: Prisma.LinkWhereInput = {
     userId: user.id,

@@ -2,7 +2,8 @@ import Link from "next/link";
 
 const TABS: { key: string; label: string }[] = [
   { key: "unread", label: "Unread" },
-  { key: "read", label: "Read & Archived" },
+  { key: "read", label: "Read" },
+  { key: "archived", label: "Archived" },
   { key: "all", label: "All" },
 ];
 

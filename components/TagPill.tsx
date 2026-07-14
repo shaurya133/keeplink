@@ -1,9 +1,17 @@
 "use client";
 
-export function TagPill({ name, onRemove }: { name: string; onRemove?: () => void }) {
+import Link from "next/link";
+
+export function TagPill({ name, onRemove, href }: { name: string; onRemove?: () => void; href?: string }) {
   return (
     <span className="tag tag-outline gap-1.5">
-      {name}
+      {href ? (
+        <Link href={href} className="no-underline text-inherit">
+          {name}
+        </Link>
+      ) : (
+        name
+      )}
       {onRemove && (
         <button
           type="button"

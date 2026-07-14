@@ -111,6 +111,7 @@ export function LinkCard({ link }: { link: LinkWithTags }) {
               <TagPill
                 key={tag.id}
                 name={tag.name}
+                href={`/links?status=all&tag=${encodeURIComponent(tag.name)}`}
                 onRemove={() => run(() => removeTagFromLink(link.id, tag.id))}
               />
             ))}
