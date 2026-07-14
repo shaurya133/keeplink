@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { auth, signIn } from "@/auth";
+import { PENDING_EMAIL_COOKIE } from "@/lib/magic-link";
 
 export default async function LoginPage() {
   const session = await auth();
@@ -15,7 +17,15 @@ export default async function LoginPage() {
         <form
           action={async (formData) => {
             "use server";
-            await signIn("nodemailer", { ...Object.fromEntries(formData), redirectTo: "/links" });
+            const email = String(formData.get("email") ?? "").trim().toLowerCase();
+            (await cookies()).set(PENDING_EMAIL_COOKIE, email, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "lax",
+              maxAge: 60 * 10,
+              path: "/",
+            });
+            await signIn("nodemailer", { email, redirectTo: "/links" });
           }}
           className="space-y-[var(--space-3)]"
         >
