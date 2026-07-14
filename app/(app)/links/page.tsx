@@ -1,10 +1,9 @@
 import { requireUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
-import { LinkForm } from "@/components/LinkForm";
+import { LinkOmniBar } from "@/components/LinkOmniBar";
 import { LinkList } from "@/components/LinkList";
 import { FilterTabs } from "@/components/FilterTabs";
 import { TagSidebar } from "@/components/TagSidebar";
-import { SearchBar } from "@/components/SearchBar";
 import type { Prisma } from "@prisma/client";
 
 const VALID_STATUSES = new Set(["unread", "read", "all"]);
@@ -86,8 +85,7 @@ export default async function LinksPage({
       </aside>
 
       <main className="min-w-0 flex-1 max-w-[920px] p-4 sm:p-[var(--space-6)]">
-        <LinkForm />
-        <SearchBar />
+        <LinkOmniBar />
         <FilterTabs
           activeStatus={status}
           buildHref={(o) => buildHref({ status: o.status })}
