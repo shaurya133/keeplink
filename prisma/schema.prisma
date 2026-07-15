@@ -16,10 +16,11 @@ model User {
   emailVerified DateTime?
   image         String?
 
-  accounts Account[]
-  sessions Session[]
-  links    Link[]
-  tags     Tag[]
+  accounts   Account[]
+  sessions   Session[]
+  links      Link[]
+  tags       Tag[]
+  highlights Highlight[]
 
   createdAt DateTime @default(now())
 }
@@ -85,8 +86,9 @@ model Link {
   readAt     DateTime?
   archivedAt DateTime?
 
-  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tags LinkTag[]
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags       LinkTag[]
+  highlights Highlight[]
 
   @@unique([userId, url])
   @@index([userId, status])
@@ -103,6 +105,20 @@ model Tag {
 
   @@unique([userId, name])
   @@index([userId])
+}
+
+model Highlight {
+  id        String   @id @default(cuid())
+  userId    String
+  linkId    String
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([linkId])
 }
 
 model LinkTag {
