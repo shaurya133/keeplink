@@ -42,8 +42,5 @@ export async function sendOtpEmail(email: string, code: string) {
     throw new Error(`Failed to send code: ${error.message}`);
   }
 
-  if (process.env.NODE_ENV !== "production") {
-    console.log(`[DEV] OTP code for ${email}: ${code}`);
-  }
   console.log(`OTP email sent to ${email} (Resend id: ${data?.id})`);
 }
