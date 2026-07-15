@@ -3,6 +3,23 @@ import { prisma } from "@/lib/prisma";
 import { getUserFromBearer, mobileCorsHeaders } from "@/lib/mobile-auth";
 import { z } from "zod";
 
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const user = await getUserFromBearer(req);
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: mobileCorsHeaders() });
+
+  const link = await prisma.link.findFirst({
+    where: { id: params.id, userId: user.id },
+    include: { tags: { include: { tag: true } } },
+  });
+
+  if (!link) return NextResponse.json({ error: "Not found" }, { status: 404, headers: mobileCorsHeaders() });
+
+  return NextResponse.json(link, { headers: mobileCorsHeaders() });
+}
+
 const patchSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("markRead") }),
   z.object({ action: z.literal("markUnread") }),
