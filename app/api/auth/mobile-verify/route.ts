@@ -43,5 +43,5 @@ export async function POST(req: NextRequest) {
   }
 
   const jwt = await signMobileToken(user.id);
-  return NextResponse.json({ token: jwt }, { headers: mobileCorsHeaders() });
+  return NextResponse.json({ token: jwt, userId: user.id }, { headers: mobileCorsHeaders() });
 }
