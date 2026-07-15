@@ -84,7 +84,7 @@ export default function PrivacyPage() {
             {[
               ["Email address", "collected when you sign in; used only to send your one-time sign-in code."],
               ["Saved links", "the URLs, titles, descriptions, and thumbnails of pages you save; stored on our servers to build your personal library."],
-              ["Reading highlights", "stored locally on your device only. We never transmit them to our servers."],
+              ["Reading highlights", "sentences you highlight while reading, stored on our servers and tied to your account."],
             ].map(([term, desc]) => (
               <li key={term} style={{ paddingLeft: "16px", position: "relative", lineHeight: 1.6 }}>
                 <span style={{
