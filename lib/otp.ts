@@ -40,23 +40,46 @@ export async function createOtp(email: string): Promise<string> {
   return code;
 }
 
+const OTP_MAX_ATTEMPTS = 5;
+
 export async function verifyOtp(
   email: string,
   code: string
 ): Promise<boolean> {
-  const token = hashOtp(email, code.trim());
-
-  const record = await prisma.verificationToken.findUnique({
-    where: { identifier_token: { identifier: email, token } },
+  const record = await prisma.verificationToken.findFirst({
+    where: { identifier: email },
   });
 
   if (!record) return false;
+
   if (record.expires < new Date()) {
     await prisma.verificationToken
-      .delete({ where: { identifier_token: { identifier: email, token } } })
+      .delete({ where: { identifier_token: { identifier: email, token: record.token } } })
       .catch(() => {});
     return false;
   }
+
+  if (record.attempts >= OTP_MAX_ATTEMPTS) {
+    await prisma.verificationToken
+      .delete({ where: { identifier_token: { identifier: email, token: record.token } } })
+      .catch(() => {});
+    return false;
+  }
+
+  const expected = hashOtp(email, code.trim());
+  if (record.token !== expected) {
+    await prisma.verificationToken
+      .update({
+        where: { identifier_token: { identifier: email, token: record.token } },
+        data: { attempts: { increment: 1 } },
+      })
+      .catch(() => {});
+    return false;
+  }
+
+  await prisma.verificationToken
+    .delete({ where: { identifier_token: { identifier: email, token: record.token } } })
+    .catch(() => {});
 
   return true;
 }

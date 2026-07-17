@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: mobileCorsHeaders() });
 
   const body = await req.json().catch(() => null);
-  if (!body?.linkId || !body?.text)
-    return NextResponse.json({ error: "linkId and text required" }, { status: 400, headers: mobileCorsHeaders() });
+  if (!body?.linkId || !body?.text || typeof body.text !== "string" || body.text.length > 2000)
+    return NextResponse.json({ error: "linkId and text required (text max 2000 chars)" }, { status: 400, headers: mobileCorsHeaders() });
 
   const link = await prisma.link.findFirst({
     where: { id: body.linkId, userId: user.id },
